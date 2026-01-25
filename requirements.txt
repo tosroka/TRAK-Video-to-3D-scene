@@ -1,0 +1,9 @@
+# client
+requests
+
+# server
+flask
+# pth to json so blender doesn't struggle
+joblib
+numpy
+torch # sadly needed
