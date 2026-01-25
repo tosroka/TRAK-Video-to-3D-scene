@@ -9,13 +9,13 @@ import numpy as np
 from mathutils import Vector, Matrix
 import math
 
-def animate_wham_with_camera(json_path, armature_name="smpl_armature", width=1920, height=1080, manual_fov_degrees=None):
+def animate_wham_with_camera(json_path, armature, width=1920, height=1080, manual_fov_degrees=None):
     with open(json_path, 'r') as f:
         # There can be more than one animations stored, we take the first one.
         # Could also find character with longest screen time, like WHAM.
         data = json.load(f)["0"]
 
-    arm = bpy.data.objects.get(armature_name)
+    arm = armature
     
     # This finds lowest vertex across whole animations and treats that height as Z=0
     # This way the animation looks like walking on grid, you can add a plane etc
@@ -174,6 +174,14 @@ def load_motion(path, target_obj):
 
 
 def load_and_assign_texture(path, target_obj):
+    if target_obj and target_obj.type == 'ARMATURE':
+        mesh_children = [child for child in target_obj.children if child.type == 'MESH']
+        if mesh_children:
+            target_obj = mesh_children[0]
+            print(f"child mesh: {target_obj.name}")
+        else:
+            print("Broken SMPL model, no mesh found?")
+            return
     if not target_obj or target_obj.type != 'MESH':
         print("Target is not a valid mesh object")
         return
