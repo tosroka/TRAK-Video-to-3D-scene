@@ -3,6 +3,12 @@ import json
 import numpy as np
 from mathutils import Vector
 
+import bpy
+import json
+import numpy as np
+from mathutils import Vector, Matrix
+import math
+
 def animate_wham_with_camera(json_path, armature_name="smpl_armature", width=1920, height=1080, manual_fov_degrees=None):
     with open(json_path, 'r') as f:
         # There can be more than one animations stored, we take the first one.
@@ -163,17 +169,14 @@ def animate_wham_with_camera(json_path, armature_name="smpl_armature", width=192
     
     print(len(p_world), "frames")
 
-
 def load_motion(path, target_obj):
     animate_wham_with_camera(path, target_obj, manual_fov_degrees=43)
 
 
 def load_and_assign_texture(path, target_obj):
     if not target_obj or target_obj.type != 'MESH':
-        print("Target is not a valid mesh object.")
+        print("Target is not a valid mesh object")
         return
-
-    # 1. Ensure the object has a material
     if not target_obj.data.materials:
         new_mat = bpy.data.materials.new(name="TRAK_Material")
         target_obj.data.materials.append(new_mat)
@@ -183,37 +186,30 @@ def load_and_assign_texture(path, target_obj):
     nodes = mat.node_tree.nodes
     links = mat.node_tree.links
 
-    # 2. Find the Principled BSDF node
-    bsdf = next((n for n in nodes if n.type == 'BSDF_PRINCIPLED'), None)
-    
-    if not bsdf:
-        print("Could not find Principled BSDF node.")
-        return
+    bsdf = None
+    for n in nodes:
+        if n.type == 'BSDF_PRINCIPLED':
+            bsdf = n
+            break
+        
+        if not bsdf:
+            print("ERROR: Add principled BSDF material")
+            return
 
-    # 3. Load the image or find if already loaded
     img = bpy.data.images.load(path, check_existing=True)
 
-    # 4. Create/Find an Image Texture node
-    # We look for an existing one to avoid cluttering the node tree
     tex_node = next((n for n in nodes if n.type == 'TEX_IMAGE'), None)
     if not tex_node:
         tex_node = nodes.new(type='ShaderNodeTexImage')
-        # Position it to the left of the BSDF node
         tex_node.location = (bsdf.location.x - 300, bsdf.location.y)
 
-    # 5. Assign the image and link to Base Color
     tex_node.image = img
     links.new(tex_node.outputs['Color'], bsdf.inputs['Base Color'])
-
-    print(f"Assigned {img.name} to {target_obj.name} via material {mat.name}")
     
 
 def setup_trak_video_background(video_path):
-    # 1. Load the video into Blender's internal data
-    # use_sequence_cache=True helps with playback performance
     clip = bpy.data.movieclips.load(video_path)
     
-    # 2. Find or Create "TRAK Camera"
     cam_name = "TRAK Camera"
     cam_obj = bpy.data.objects.get(cam_name)
     
@@ -225,7 +221,6 @@ def setup_trak_video_background(video_path):
     cam_data = cam_obj.data
     bpy.context.scene.camera = cam_obj
 
-    # 3. Configure Background for Video
     cam_data.show_background_images = True
     cam_data.background_images.clear()
     
@@ -233,7 +228,6 @@ def setup_trak_video_background(video_path):
     bg.source = 'MOVIE_CLIP'
     bg.clip = clip
     
-    # Optional: Match scene length to video length
     bpy.context.scene.frame_start = 1
     bpy.context.scene.frame_end = clip.frame_duration
     

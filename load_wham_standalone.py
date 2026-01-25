@@ -163,6 +163,39 @@ def animate_wham_with_camera(json_path, armature_name="smpl_armature", width=192
     bpy.context.scene.camera = cam_obj
     
     print(len(p_world), "frames")
+    
+def load_and_assign_texture(path, target_obj):
+    if not target_obj or target_obj.type != 'MESH':
+        print("Target is not a valid mesh object")
+        return
+    if not target_obj.data.materials:
+        new_mat = bpy.data.materials.new(name="TRAK_Material")
+        target_obj.data.materials.append(new_mat)
+    
+    mat = target_obj.data.materials[0]
+    mat.use_nodes = True
+    nodes = mat.node_tree.nodes
+    links = mat.node_tree.links
+
+    bsdf = None
+    for n in nodes:
+        if n.type == 'BSDF_PRINCIPLED':
+            bsdf = n
+            break
+        
+        if not bsdf:
+            print("ERROR: there is no BSDF principled material")
+            return
+
+    img = bpy.data.images.load(path, check_existing=True)
+
+    tex_node = next((n for n in nodes if n.type == 'TEX_IMAGE'), None)
+    if not tex_node:
+        tex_node = nodes.new(type='ShaderNodeTexImage')
+        tex_node.location = (bsdf.location.x - 300, bsdf.location.y)
+
+    tex_node.image = img
+    links.new(tex_node.outputs['Color'], bsdf.inputs['Base Color'])
 
 animate_wham_with_camera(
     "/home/tomek/studia/mgr/sem2/TRAK/projekt/results/example/wham_output.json", 
@@ -171,3 +204,6 @@ animate_wham_with_camera(
     height=1920,
     width=1080
 )
+
+load_and_assign_texture("/home/tomek/studia/mgr/sem2/TRAK/projekt/results/example/example_texture_inpaint-000_img2img-000_cfg2.0_01242026-225114.png",
+                        bpy.data.objects.get("SMPL-mesh-male"))

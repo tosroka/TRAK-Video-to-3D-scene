@@ -5,7 +5,7 @@ Blender addon that extracts movement and texture from video, then loads it into 
 The addon is a client that connects to flask server, which in turn calls local WHAM and SMPLitex installations. Provide correct paths in `config.py`
 
 Project structure:
-
+```
 .
 ├── app.py
 ├── blender_addon
@@ -21,4 +21,4 @@ Project structure:
 ├── README.md
 ├── requirements.txt - requirements for flask server (needs joblib and torch to convert WHAM results)
 ├── test_client.py - same as addon client, but outside of blender
-
+```
