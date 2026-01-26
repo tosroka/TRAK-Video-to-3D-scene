@@ -1,17 +1,30 @@
 bl_info = {
     "name": "TRAK video to blender",
-    "blender": (4, 0, 0),
+    "blender": (4, 4, 0),
     "category": "Object",
 }
 import bpy
 from . import UI
 from . import client
 from . import processing
+from .cameras import CINEMATIC_PT_Director, CINEMATIC_OT_SetupEnv, CINEMATIC_OT_SetupCameras, CinematicProperties
 
 def poll_mesh_objects(self, object):
     return object.type == 'ARMATURE'
 
+classes = (
+    CINEMATIC_PT_Director,
+    CINEMATIC_OT_SetupEnv,
+    CINEMATIC_OT_SetupCameras,
+    CinematicProperties,
+)
+
 def register():
+    for cls in classes:
+        bpy.utils.register_class(cls)
+    bpy.types.Scene.cinematic_props = bpy.props.PointerProperty(
+        type=CinematicProperties
+    )
     bpy.utils.register_class(UI.MEDIA_OT_ProcessFiles)
     bpy.utils.register_class(UI.MEDIA_PT_MainPanel)
     bpy.utils.register_class(UI.MEDIA_PT_SettingsPanel)
@@ -40,6 +53,10 @@ def register():
     )
 
 def unregister():
+    for cls in reversed(classes):
+        bpy.utils.unregister_class(cls)
+    del bpy.types.Scene.cinematic_props
+
     bpy.utils.unregister_class(UI.MEDIA_OT_ProcessFiles)
     bpy.utils.unregister_class(UI.MEDIA_PT_MainPanel)
     bpy.utils.unregister_class(UI.MEDIA_PT_SettingsPanel)

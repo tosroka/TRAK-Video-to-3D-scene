@@ -13,7 +13,9 @@ def animate_wham_with_camera(json_path, armature, width=1920, height=1080, manua
     with open(json_path, 'r') as f:
         # There can be more than one animations stored, we take the first one.
         # Could also find character with longest screen time, like WHAM.
-        data = json.load(f)["0"]
+        data = json.load(f)
+        first = list(data.keys())[0]
+        data = data[first]
 
     arm = armature
     
