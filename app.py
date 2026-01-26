@@ -81,18 +81,18 @@ def run_pipeline(job_id: str, video_path: Path, image_path: Path):
         subprocess.run([config.SMPLITEX_PYTHON, "inpaint_with_A1111.py", "--partial_textures", (smpltex_data/"uv-textures").absolute(), "--masks", (smpltex_data/"uv-textures-masks").absolute(), "--inpainted_textures", (Path("results") / image_path.stem).absolute()], check=True, cwd=config.SMPLITEX_WORKING_DIR/"scripts", env=env)
 
         # blender has no joblib, so convert it to json beforehand!
-        data = joblib.load(Path("results") / image_path.stem / "wham_output.pkl")
+        data = joblib.load(Path("results") / video_path.stem / "wham_output.pkl")
 
         # rebuild data because it has int64 keys and ndarrays
         data_new = {int(x) : {k : data[x][k].tolist() for k in data[x]} for x in data}
 
         # save it to file for good measure
-        with (Path("results") / image_path.stem / "wham_output.json").open("w") as f:
+        with (Path("results") / video_path.stem / "wham_output.json").open("w") as f:
             json.dump(data_new, f)
 
         JOBS[job_id].status = JobStatus.COMPLETED
         JOBS[job_id].files = {
-            "motion": Path("results") / image_path.stem / "wham_output.json",
+            "motion": Path("results") / video_path.stem / "wham_output.json",
             "texture": list((Path("results") / image_path.stem).glob("*.png"))[0]
         }
     except Exception as e:
