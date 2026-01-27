@@ -220,7 +220,7 @@ def load_and_assign_texture(path, target_obj):
 def setup_trak_video_background(video_path):
     clip = bpy.data.movieclips.load(video_path)
     
-    cam_name = "TRAK Camera"
+    cam_name = "WHAM_Camera"
     cam_obj = bpy.data.objects.get(cam_name)
     
     if not cam_obj:
